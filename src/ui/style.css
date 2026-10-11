@@ -1,0 +1,583 @@
+:root {
+  color-scheme: dark;
+  --panel: rgba(22, 28, 36, 0.82);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --text: #eef2f6;
+  --muted: #9fb0c0;
+  --accent: #4fb3ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #1c2530;
+}
+
+body {
+  font: 15px/1.3 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--text);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#view {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Gesten gehören dem Spiel, nicht dem Browser. */
+  touch-action: none;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  pointer-events: none;
+}
+
+/* Alles unter der oberen Leiste. Fenster und Meldungen beginnen hier, egal wie hoch die Leiste gerade ist. */
+#stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px;
+  padding: 6px 8px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.title {
+  font-weight: 600;
+}
+
+/* Drei schmale Balken, die von unten her die Nachfrage anzeigen. */
+.demand {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 30px;
+}
+
+.demand-bar {
+  display: flex;
+  align-items: flex-end;
+  width: 9px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.demand-fill {
+  width: 100%;
+  height: 0;
+  transition: height 0.4s;
+}
+
+.date {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.speeds {
+  display: flex;
+  gap: 4px;
+}
+
+/* Mindestens 44 px: bequem mit dem Finger zu treffen. */
+.speed {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.speed:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.speed.active {
+  color: #06121c;
+  background: var(--accent);
+}
+
+.fps {
+  min-width: 56px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Untere Leiste: Hinweis, Bestätigen/Abbrechen, Optionen und Werkzeugwahl übereinander. */
+.bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.panel {
+  max-width: 100%;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+}
+
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.chip,
+.action {
+  min-height: 44px;
+  padding: 0 16px;
+  font: inherit;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.chip:hover,
+.action:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.chip.active {
+  color: #06121c;
+  background: var(--accent);
+}
+
+.hint {
+  padding: 8px 14px;
+  color: var(--text);
+  text-align: center;
+  pointer-events: none;
+}
+
+.hint.problem {
+  color: #ffd9d4;
+  background: rgba(120, 28, 22, 0.88);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.action {
+  min-width: 120px;
+  background: var(--panel);
+  border-color: var(--panel-border);
+}
+
+.action.primary {
+  color: #06121c;
+  font-weight: 600;
+  background: #7ddc8a;
+  border-color: transparent;
+}
+
+.action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.money,
+.date {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  /* iPad im Hochformat und schmaler: Titel und Bildrate weichen, und die Leiste umbricht, statt Knöpfe aus dem Bild zu schieben. */
+  .topbar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .speeds {
+    margin-left: auto;
+  }
+
+  .title,
+  .fps {
+    display: none;
+  }
+
+  .date {
+    margin-left: 0;
+    margin-right: auto;
+  }
+}
+
+/* --- Geld, Budgetfenster und Meldungen --- */
+
+.money {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 44px;
+  padding: 2px 12px;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.money:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.money-balance {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-net {
+  font-size: 12px;
+  color: #8fe09a;
+  font-variant-numeric: tabular-nums;
+}
+
+.negative {
+  color: #ff9a8f !important;
+}
+
+/* Gesperrte Auswahl: ausgegraut, darunter steht, ab wann sie frei wird. */
+.chip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.lock-note {
+  display: block;
+  font-size: 11px;
+  line-height: 1.1;
+  color: var(--muted);
+}
+
+/* Fängt Klicks neben dem Fenster ab, damit dabei nichts gebaut wird. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.window {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100% - 16px);
+  max-height: calc(100% - 12px);
+  padding: 0;
+  transform: translateX(-50%);
+  background: rgba(22, 28, 36, 0.95);
+}
+
+.window-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.window-title {
+  margin: 0;
+  font-size: 17px;
+}
+
+.window-balance {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.window-body {
+  padding: 4px 16px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  user-select: none;
+}
+
+.budget-section {
+  padding-top: 12px;
+}
+
+.section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.budget-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.budget-row.total {
+  margin-top: 4px;
+  padding-top: 8px;
+  font-weight: 600;
+  border-top: 1px solid var(--panel-border);
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.budget-note {
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tax-row {
+  padding-bottom: 6px;
+}
+
+.tax-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tax-slider {
+  flex: 1;
+  min-width: 60px;
+  height: 44px;
+  margin: 0;
+  accent-color: var(--accent);
+  touch-action: none;
+}
+
+.tax-rate {
+  min-width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tax-growth {
+  min-width: 104px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.icon-button {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-value {
+  min-width: 110px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-title {
+  padding: 2px 0 6px;
+}
+
+.goal-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.goal-fill {
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.4s;
+}
+
+.notice {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: min(380px, 100% - 16px);
+  padding: 14px 16px;
+  text-align: center;
+  transform: translateX(-50%);
+  background: rgba(22, 28, 36, 0.95);
+}
+
+.notice-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.notice-line {
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .tax-growth {
+    display: none;
+  }
+
+  /* Viele Auswahlknöpfe in einer Zeile zum Wischen statt in mehreren Reihen, damit die Karte sichtbar bleibt. */
+  .options {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .choice {
+    flex-wrap: nowrap;
+  }
+
+  .chip {
+    flex: none;
+  }
+}
+
+/* --- Fenster „Spiel“ --- */
+
+.menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.menu-row .action {
+  flex: 1 1 auto;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.menu-row .action:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Rückfrage, bevor die jetzige Stadt ersetzt wird. */
+.menu-question {
+  margin-top: 12px;
+  padding: 10px 12px 8px;
+  background: rgba(120, 28, 22, 0.45);
+  border: 1px solid rgba(255, 154, 143, 0.5);
+  border-radius: 10px;
+}
+
+.menu-row .action.danger {
+  color: #1c0704;
+  font-weight: 600;
+  background: #ff9a8f;
+}
+
+.menu-row .action.danger:hover {
+  background: #ffb3aa;
+}
+
+/* Balken im Fenster „Stadt“: rot, solange ein Bedarf nicht ganz gedeckt ist. */
+.meter {
+  padding: 2px 0 8px;
+}
+
+.goal-fill.short {
+  background: #ff9a8f;
+}
